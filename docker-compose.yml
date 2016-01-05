@@ -1,46 +1,48 @@
-db:
-  image: mysql
-  command: --innodb_file_per_table
+# Expected output:
+# > $CRONTAB
+# >
+test-cron:
+  build: .
+  entrypoint: bash -x /entrypoint.sh
+  command: 'crontab -u root -l'
   environment:
-    MYSQL_ROOT_PASSWORD: example
+    CRON_OWNER: root
+    CRON_ENV_FILE: /var/env.cron
+    CRON_TAB: |
+      * *    * * *    . /var/env.cron; env; touch /.cron; echo Cron fired at $$(date)
+    TZ: Pacific/Auckland
 
-php:
-  image: nickbreen/wp-cli:apache
-  volumes_from:
-    - wp
-  links:
-    - db:mysql
+# Expected output:
+# > no crontab for root
+# Or a blank line
+# >
+test-no-cron:
+  build: .
+  entrypoint: bash -x /entrypoint.sh
+  command: 'crontab -l'
+
+test-env:
+  build: .
+  entrypoint: bash -x /entrypoint.sh
+  command: 'crontab -l'
   environment:
-    VIRTUAL_HOST: "*.example.com"
-    NR_APP_NAME: "example-app"
-    NR_INSTALL_KEY: example-key
+    TEST: only vars begining with "CRON" are stored.
+    CRON_ENV_FILE: /var/cron.env
+    CRON_TAB: |
+      * *    * * *    . /var/cron.env; env
 
-wp:
-  image: nickbreen/wp-cli:cli
-  links:
-    - db:mysql
+cron:
+  build: .
+  environment:
+    CRON_ENV_FILE: /var/env.cron
+    CRON_TAB: |
+      * *    * * *    . /var/env.cron; env
+    TZ: Pacific/Auckland
   volumes:
-    - /var/www/html
-  environment:
-    WP_DB_NAME: wp_example
-    WP_DB_USER: wp_example
-    WP_DB_PASSWORD: wp_example
-    WP_URL: http://example.com
-    WP_TITLE: Example Blog
-    WP_ADMIN_USER: example
-    WP_ADMIN_PASSWORD: example
-    WP_ADMIN_EMAIL: example@example.com
-    WP_PLUGINS: |
-      amazon-s3-and-cloudfront
-      amazon-web-services
-    WP_OPTIONS: |
-      timezone_string "Pacific/Auckland"
-      permalink_structure "\/%postname%\/"
-      aws_settings {"access_key_id":"PASTE_KEY_HERE","secret_access_key":"PASTE_SECRET_HERE"}
-      tantan_wordpress_s3 {"post_meta_version":3,"bucket":"PASTE_BUCKET_NAME_HERE","region":"PASTE_REGION_HERE","domain":"path","expires":"0","cloudfront":"","object-prefix":"wp-content\/uploads\/","copy-to-s3":"1","serve-from-s3":"1","remove-local-file":"1","ssl":"request","hidpi-images":"0","object-versioning":"0","use-yearmonth-folders":"1","enable-object-prefix":"1"}
-    BB_KEY: PASTE_BITBUCKET_KEY_HERE
-    BB_SECRET: PASTE_BITBUCKET_SECRET_HERE
-    BB_PLUGINS: |
-      owner-name/repo-name tag
-    BB_THEMES: |
-      owner-name/repo-name tag
+    - /var/mail
+
+mail:
+  image: debian:stable
+  command: bash -c 'while ! tail -F /var/mail/*; do sleep 1; done'
+  volumes_from:
+    - cron

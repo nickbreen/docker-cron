@@ -1,14 +1,10 @@
 #!/bin/bash
 
-if [ "$CRON_ENV_FILE" ]
+if [ $CRON_ENV_FILE ]
 then
-  printenv -0 | while read -d $'\0' V
-  do
-    echo -E "export \"${V//\"/\\\"}\""
-  done > $CRON_ENV_FILE
+  # NUL delimit the vars; escape newlines and double-quotes, quote; NUL's back to NL's
+  printenv -0 | sed -z -e '1i\set -a' -e 's/[\n\"]/\\\0/g;s/=/\0\"/;s/$/\"/' | tr '\0' '\n' > $CRON_ENV_FILE
 fi
-
-[ $TZ ] && echo $TZ > /etc/timezone
 
 crontab -u ${CRON_OWNER:=$(whoami)} - <<< "$CRON_TAB"
 

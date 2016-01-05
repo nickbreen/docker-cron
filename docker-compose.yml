@@ -21,28 +21,29 @@ test-no-cron:
   entrypoint: bash -x /entrypoint.sh
   command: 'crontab -l'
 
-
-
 test-env:
   build: .
-  entrypoint: bash -x /entrypoint.sh
-  command: crontab -l
+  command: sh -c 'set -x; cat /var/cron.env; printenv; . /var/cron.env; printenv; echo $$WUTHERING_HEIGHTS'
   environment:
-    TEST: all vars are stored!
     CRON_ENV_FILE: /var/cron.env
-    CRON_TAB: |
-      # even multi-line ones!
-      * *    * * *    . /var/cron.env; printenv
-    QUOTES: it's bound to go wrong with an extra quote
-    DQUOTES: I said, "it's bound to go wrong with an extra quote"
+    ASCII: |
+      "Now he is here," I exclaimed.  "For Heaven's sake..."
+    WUTHERING_HEIGHTS: |
+      “Now he is here,” I exclaimed.  “For Heaven’s sake, hurry down!  Do be quick; and stay among the trees till he is fairly in.”
+
+      I must go, Cathy,” said Heathcliff, seeking to extricate himself from his companion’s arms.  I won’t stray five yards from your window…
+
+      “For one hour,” he pleaded earnestly.
+
+      “Not for one minute,” she replied.
+
+      “I must–Linton will be up immediately,” persisted the intruder.”
 
 cron:
   build: .
   environment:
-    CRON_ENV_FILE: /var/cron.env
     CRON_TAB: |
-      * *    * * *    cat /var/cron.env; echo =======; printenv; echo =======; . /var/cron.env; printenv
-    TZ: Pacific/Auckland
+      * *    * * *    echo "Hello World"
   volumes:
     - /var/mail
 

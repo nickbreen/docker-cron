@@ -21,22 +21,27 @@ test-no-cron:
   entrypoint: bash -x /entrypoint.sh
   command: 'crontab -l'
 
+
+
 test-env:
   build: .
   entrypoint: bash -x /entrypoint.sh
-  command: 'crontab -l'
+  command: crontab -l
   environment:
-    TEST: only vars begining with "CRON" are stored.
+    TEST: all vars are stored!
     CRON_ENV_FILE: /var/cron.env
     CRON_TAB: |
-      * *    * * *    . /var/cron.env; env
+      # even multi-line ones!
+      * *    * * *    . /var/cron.env; printenv
+    QUOTES: it's bound to go wrong with an extra quote
+    DQUOTES: I said, "it's bound to go wrong with an extra quote"
 
 cron:
   build: .
   environment:
-    CRON_ENV_FILE: /var/env.cron
+    CRON_ENV_FILE: /var/cron.env
     CRON_TAB: |
-      * *    * * *    . /var/env.cron; env
+      * *    * * *    cat /var/cron.env; echo =======; printenv; echo =======; . /var/cron.env; printenv
     TZ: Pacific/Auckland
   volumes:
     - /var/mail

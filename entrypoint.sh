@@ -1,14 +1,11 @@
 #!/bin/bash
 
-if [ $CRON_ENV_FILE ]
+if [ "$CRON_ENV_FILE" ]
 then
-  (
-    echo set -a
-    for V in ${!CRON*}
-    do
-      echo "export ${V}='${!V}'"
-    done
-  ) > $CRON_ENV_FILE
+  printenv -0 | while read -d $'\0' V
+  do
+    echo -E "export \"${V//\"/\\\"}\""
+  done > $CRON_ENV_FILE
 fi
 
 [ $TZ ] && echo $TZ > /etc/timezone

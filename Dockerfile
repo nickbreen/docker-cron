@@ -1,4 +1,3 @@
-#FROM nickbreen/wp-cli:wp-api
 FROM debian:stable
 
 RUN apt-get update -q && apt-get install -qy cron && apt-get clean -q

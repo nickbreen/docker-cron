@@ -1,54 +1,7 @@
-# Expected output:
-# > $CRONTAB
-# >
-test-cron:
-  build: .
-  entrypoint: bash -x /entrypoint.sh
-  command: 'crontab -u root -l'
-  environment:
-    CRON_OWNER: root
-    CRON_ENV_FILE: /var/env.cron
-    CRON_TAB: |-
-      * *    * * *    . /var/env.cron; env; touch /.cron; echo Cron fired at $$(date)
-    TZ: Pacific/Auckland
-
-# Expected output:
-# > no crontab for root
-# Or a blank line
-# >
-test-no-cron:
-  build: .
-  entrypoint: bash -x /entrypoint.sh
-  command: 'crontab -l'
-
-test-env:
-  build: .
-  command: sh -x -c 'cat /var/cron.env; printenv; . /var/cron.env; printenv; echo $$WUTHERING_HEIGHTS'
-  environment:
-    CRON_ENV_FILE: /var/cron.env
-    ASCII: |-
-      "Now he is here," I exclaimed.  "For Heaven's sake..."
-    WUTHERING_HEIGHTS: |-
-      “Now he is here,” I exclaimed.  “For Heaven’s sake, hurry down!  Do be quick; and stay among the trees till he is fairly in.”
-
-      I must go, Cathy,” said Heathcliff, seeking to extricate himself from his companion’s arms.  I won’t stray five yards from your window…
-
-      “For one hour,” he pleaded earnestly.
-
-      “Not for one minute,” she replied.
-
-      “I must–Linton will be up immediately,” persisted the intruder.”
-
 cron:
   build: .
   environment:
-    CRON_TAB: |-
-      * *    * * *    echo "Hello World"
-  volumes:
-    - /var/mail
-
-mail:
-  image: debian:stable
-  command: bash -x -c 'while ! tail -F /var/mail/*; do sleep 1; done'
-  volumes_from:
-    - cron
+    HELLO_WORLD: Hello World!
+    CRON_D_HELLO_WORLD: |-
+      * *    * * *    root logger < /etc/container_environment/HELLO_WORLD
+      * *    * * *    root ls -l /etc/cron.d | logger

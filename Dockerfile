@@ -1,11 +1,6 @@
-FROM debian:stable
+FROM phusion/baseimage:0.9.18
 
-RUN apt-get update -q && apt-get install -qy cron && apt-get clean -q
+# Use baseimage-docker's init system.
+CMD ["/sbin/my_init"]
 
-COPY entrypoint.sh /
-
-ENV CRON_TAB="" CRON_OWNER="" CRON_ENV_FILE=""
-
-ENTRYPOINT [ "/entrypoint.sh" ]
-# Start cron in the foreground, enable all logging
-CMD [ "cron", "-f", "-L15" ]
+COPY rc.local /etc/rc.local

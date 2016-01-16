@@ -1,18 +1,16 @@
-A lightweight cron container.
+A lightweight [cron] container, which allows crontabs to be specified using environment variables.
+
+This allows for rapid prototyping and development of cron jobs, especially when using ```docker-compose```.
+
+[cron]: https://www.debian-administration.org/article/56/Command_scheduling_with_cron
 
 # Configuration
 
-Configure the cron container using environment variables.
+Configure the cron container using environment variables. For each environment variable named with a ```CRON_D_``` prefix the value will be written to a file in ```/etc/cron.d/```, the filename of which will be the lowercased suffix of the environment variables name; e.g.
 
-|Variable|Default|Purpose|Example|
-|--------|-------|-------|-------|
-|CRON_OWNER   |```root```|The user whose crontab to edit.|```www-data```|
-|CRON_TAB     ||[crontab] job specifications.|```* * * * * command```|
-|CRON_ENV_FILE||A file to perist environment variables to, so they can be made available to _command_.|```/var/cron.env```
+    docker run -e 'CRON_D_HELLO_WORLD=* * * * * root echo Hello World from $(whoami) | logger' nickbreen/cron
 
-Note that the CRON_TAB value is piped directly into ```crontab``` and can also specify other cron options; e.g. ```SHELL=/bin/bash```.
-
-[crontab]: https://www.debian-administration.org/article/56/Command_scheduling_with_cron
+Will create a file ```/etc/cron.d/hello_world```.
 
 ## Example: ```docker-compose.yml```
 
@@ -20,19 +18,20 @@ Note that the CRON_TAB value is piped directly into ```crontab``` and can also s
     cron:
       build: .
       links:
-        - mysql:mysql
+        - mysql-a:mysqla
+        - mysql-b:mysqlb
       volumes_from:
         - apache:apache
       environment:
-        CRON_ENV_FILE: /var/env.cron
-        CRON_OWNER: www-data
-        CRON_TAB: |
-          # Every hour" clean mod_cache_disk's cache.
-          0 * * * * htcacheclean -n -p/var/cache/apache2/mod_cache_disk
-          # At 4am: dump a MySQL DB, compress it, and upload it to S3.
-          0 4 * * * . /var/env.cron; mysqldump -h$$MYSQL_PORT_3306_TCP_ADDRT_3306 -P$$MYSQL_PORT_3306_TCP_PORT -u$$MYSQL_ENV_MYSQL_USER -p$$MYSQL_ENV_MYSQL_PASSWORD $$MYSQL_ENV_MYSQL_DATABASE | gzip | s3cmd put - s3://bucket/backup-$$MYSQL_ENV_MYSQL_DATABASE.sql
+        CRON_D_CACHE: |-
+          # Every hour clean mod_cache_disk's cache.
+          0 * * * * www-data htcacheclean -n -p/var/cache/apache2/mod_cache_disk
+        CRON_D_DB_BACKUP: |-
+          # At 4am: dump MySQL DB's "A" and "B", compress, and upload to S3.
+          0 4 * * * root . /etc/container_environment; mysqldump -h$$MYSQLA_PORT_3306_TCP_ADDR -P$$MYSQLA_PORT_3306_TCP_PORT -u$$MYSQLA_ENV_MYSQLA_USER -p$$MYSQLA_ENV_MYSQLA_PASSWORD $$MYSQLA_ENV_MYSQLA_DATABASE | gzip | s3cmd put - s3://bucketa/backup-$$MYSQLA_ENV_MYSQL_DATABASE.sql
+          0 4 * * * root . /etc/container_environment; mysqldump -h$$MYSQLB_PORT_3306_TCP_ADDR -P$$MYSQLB_PORT_3306_TCP_PORT -u$$MYSQLB_ENV_MYSQLB_USER -p$$MYSQLB_ENV_MYSQLB_PASSWORD $$MYSQLB_ENV_MYSQLB_DATABASE | gzip | s3cmd put - s3://bucketb/backup-$$MYSQLB_ENV_MYSQL_DATABASE.sql
 
-Note the escaped (```$$```) variables in ```CRON_TAB``` as ```docker-compose``` will try to evaluate variables.
+Note the escaped (```$$```) variables as ```docker-compose``` will (now) evaluate variables.
 
 Note this image does not include Apache, s3cmd, or MySQL so the ```mysqldump```, ```htcacheclean``` and ```s3cmd``` commands are not actually available! One would need to extend this image thus:
 
@@ -48,25 +47,11 @@ Note this image does not include Apache, s3cmd, or MySQL so the ```mysqldump```,
 
 # Logging
 
-cron jobs are not logged _per-se_. Instead their output is emailed to the owner of the crontab.
-
-In this image all this mail just spools into ```/var/spool/mail/```.
-
-Locally it's easy enough to host-mount a volume at ```/var/spool/mail/``` and monitor the files. Remotely this can be effected with:
+cron jobs are not logged _per-se_. Instead, if an MTA is available, their output is emailed to the owner of the crontab. Otherwise, explicitly pipe their output to ```logger```.
 
     cron:
       build: .
       environment:
-        CRON_TAB: |
-          # Every minute: say "Hello World".
-          * * * * * echo Hello World!
-      volumes:
-        - /var/mail
-
-    mail:
-      image: debian:stable
-      command: bash -c 'while ! tail -F /var/mail/*; do sleep 1; done'
-      volumes_from:
-        - cron
-
-This container will simply log out the mail spool (somewhat verbosely).
+        HELLO_WORLD: Hello World!
+        CRON_TAB: |-
+          * *    * * *    . /etc/container_environment.sh; echo $$HELLO_WORLD | logger

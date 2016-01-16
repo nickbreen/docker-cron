@@ -1,0 +1,11 @@
+#!/bin/bash
+. /etc/container_environment.sh
+
+for V in ${!CRON_D_*}
+do
+  F=/etc/cron.d/$(echo ${V#CRON_D_} | tr '[:upper:]' '[:lower:]')
+  echo "${!V}" > $F
+  chmod +x $F
+done
+
+:

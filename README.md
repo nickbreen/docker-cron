@@ -6,17 +6,29 @@ This allows for rapid prototyping and development of cron jobs, especially when 
 
 # Configuration
 
-Configure the cron container using environment variables. For each environment variable named with a ```CRON_D_``` prefix the value will be written to a file in ```/etc/cron.d/```, the filename of which will be the lowercased suffix of the environment variables name; e.g.
+Configure the cron container using environment variables. For each environment variable whose name is prefixed with ```CRON_D_``` its value will be written to a file in ```/etc/cron.d/```, the filename of which will be the lowercased suffix of the environment variables name; e.g.
 
     docker run -e 'CRON_D_HELLO_WORLD=* * * * * root echo Hello World from $(whoami) | logger' nickbreen/cron
 
 Will create a file ```/etc/cron.d/hello_world```.
 
+
+# Logging
+
+cron jobs are not logged _per-se_. Instead, if an MTA is available, their output is emailed to the owner of the crontab. Otherwise, the job should explicitly pipe  output to ```logger```.
+
+    cron:
+      image: nickbreen/cron
+      environment:
+        HELLO_WORLD: Hello World!
+        CRON_D_HELLO: |-
+          * *    * * *    . /etc/container_environment.sh; echo $$HELLO_WORLD | logger
+
 ## Example: ```docker-compose.yml```
 
     # docker-compose.yml    
     cron:
-      build: .
+      image: nickbreen/cron
       links:
         - mysql-a:mysqla
         - mysql-b:mysqlb
@@ -44,14 +56,3 @@ Note this image does not include Apache, s3cmd, or MySQL so the ```mysqldump```,
       apt-get -q clean
 
     # And so on ... configure s3cmd etc.
-
-# Logging
-
-cron jobs are not logged _per-se_. Instead, if an MTA is available, their output is emailed to the owner of the crontab. Otherwise, the job should explicitly pipe  output to ```logger```.
-
-    cron:
-      build: .
-      environment:
-        HELLO_WORLD: Hello World!
-        CRON_TAB: |-
-          * *    * * *    . /etc/container_environment.sh; echo $$HELLO_WORLD | logger

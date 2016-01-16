@@ -47,7 +47,7 @@ Note this image does not include Apache, s3cmd, or MySQL so the ```mysqldump```,
 
 # Logging
 
-cron jobs are not logged _per-se_. Instead, if an MTA is available, their output is emailed to the owner of the crontab. Otherwise, explicitly pipe their output to ```logger```.
+cron jobs are not logged _per-se_. Instead, if an MTA is available, their output is emailed to the owner of the crontab. Otherwise, the job should explicitly pipe  output to ```logger```.
 
     cron:
       build: .

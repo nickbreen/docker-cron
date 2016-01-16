@@ -1,5 +1,4 @@
 #!/bin/bash
-. /etc/container_environment.sh
 
 for V in ${!CRON_D_*}
 do
@@ -7,5 +6,3 @@ do
   echo "${!V}" > $F
   chmod +x $F
 done
-
-:

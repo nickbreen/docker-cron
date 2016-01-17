@@ -6,14 +6,13 @@ This allows for rapid prototyping and development of cron jobs, especially when 
 
 # Configuration
 
-Configure the cron container using environment variables. For each environment variable whose name is prefixed with ```CRON_D_``` its value will be written to a file in ```/etc/cron.d/```, the filename of which will be the lowercased suffix of the environment variables name; e.g.
+Configure the cron container using environment variables. Each environment variable named with the prefix ```CRON_D_``` is linked into ```/etc/cron.d/```, the filename of which will be the suffix of the environment variables name; e.g.
 
     docker run \
       -e 'CRON_D_HELLO_WORLD=* * * * * root echo Hello World from $(whoami) | logger' \
       nickbreen/cron
 
-Will create a file ```/etc/cron.d/hello_world```.
-
+Will create a file ```/etc/cron.d/HELLO_WORLD```.
 
 # Logging
 
@@ -47,10 +46,10 @@ Note the escaped (```$$```) variables as ```docker-compose``` will (now) evaluat
     cron:
       build: .
       links:
-        - mysql-a:mysqla
-        - mysql-b:mysqlb
+        - mysqla
+        - mysqlb
       volumes_from:
-        - apache:apache
+        - apache
       environment:
         CRON_D_CACHE: |-
           # Every hour clean mod_cache_disk's cache.

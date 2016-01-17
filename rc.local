@@ -2,7 +2,5 @@
 set -e
 for V in ${!CRON_D_*}
 do
-  F=/etc/cron.d/$(echo ${V#CRON_D_} | tr '[:upper:]' '[:lower:]')
-  echo "${!V}" > $F
-  chmod +x $F
+  ln -s /etc/container_environment/$V /etc/cron.d/${V#CRON_D_}
 done

@@ -2,6 +2,6 @@ cron:
   build: .
   environment:
     HELLO_WORLD: Hello World!
-    CRON_D_HELLO_WORLD: |-
+    CRON_D_HELLO_WORLD: |
       * *    * * *    root logger < /etc/container_environment/HELLO_WORLD
       * *    * * *    root ls -l /etc/cron.d | logger

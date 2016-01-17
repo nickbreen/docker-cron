@@ -2,5 +2,5 @@
 set -e
 for V in ${!CRON_D_*}
 do
-  ln -s /etc/container_environment/$V /etc/cron.d/${V#CRON_D_}
+  ln -sf /etc/container_environment/$V /etc/cron.d/${V#CRON_D_}
 done

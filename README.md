@@ -56,5 +56,5 @@ Note the escaped (```$$```) variables as ```docker-compose``` will (now) evaluat
           0 * * * * www-data htcacheclean -n -p/var/cache/apache2/mod_cache_disk 2>&1 | logger
         CRON_D_DB_BACKUPS: |
           # At 4am: dump MySQL DB's "A" and "B", compress, and upload to S3.
-          0 4 * * * backup . /etc/container_environment; mysqldump -h$$MYSQLA_PORT_3306_TCP_ADDR -P$$MYSQLA_PORT_3306_TCP_PORT -u$$MYSQLA_ENV_MYSQL_USER -p$$MYSQLA_ENV_MYSQL_PASSWORD $$MYSQLA_ENV_MYSQL_DATABASE | gzip | s3cmd put - s3://bucketa/backup-$$MYSQLA_ENV_MYSQL_DATABASE.sql 2>&1 | logger
-          0 4 * * * backup . /etc/container_environment; mysqldump -h$$MYSQLB_PORT_3306_TCP_ADDR -P$$MYSQLB_PORT_3306_TCP_PORT -u$$MYSQLB_ENV_MYSQL_USER -p$$MYSQLB_ENV_MYSQL_PASSWORD $$MYSQLB_ENV_MYSQL_DATABASE | gzip | s3cmd put - s3://bucketb/backup-$$MYSQLB_ENV_MYSQL_DATABASE.sql 2>&1 | logger
+          0 4 * * * backup . /etc/container_environment.sh; mysqldump -h$$MYSQLA_PORT_3306_TCP_ADDR -P$$MYSQLA_PORT_3306_TCP_PORT -u$$MYSQLA_ENV_MYSQL_USER -p$$MYSQLA_ENV_MYSQL_PASSWORD $$MYSQLA_ENV_MYSQL_DATABASE | gzip | s3cmd put - s3://bucketa/backup-$$MYSQLA_ENV_MYSQL_DATABASE.sql 2>&1 | logger
+          0 4 * * * backup . /etc/container_environment.sh; mysqldump -h$$MYSQLB_PORT_3306_TCP_ADDR -P$$MYSQLB_PORT_3306_TCP_PORT -u$$MYSQLB_ENV_MYSQL_USER -p$$MYSQLB_ENV_MYSQL_PASSWORD $$MYSQLB_ENV_MYSQL_DATABASE | gzip | s3cmd put - s3://bucketb/backup-$$MYSQLB_ENV_MYSQL_DATABASE.sql 2>&1 | logger

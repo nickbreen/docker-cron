@@ -1,6 +1,2 @@
-#!/bin/bash
-set -e
-for V in ${!CRON_D_*}
-do
-  ln -sf /etc/container_environment/$V /etc/cron.d/${V#CRON_D_}
-done
+#!/bin/sh
+find /etc/container_environment/CRON_D_* -print0 | xargs -0 -r ln -s -t /etc/cron.d/

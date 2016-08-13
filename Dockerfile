@@ -1,3 +1,3 @@
-FROM phusion/baseimage:0.9.18
+FROM phusion/baseimage:0.9.19
 
 COPY rc.local /etc/rc.local

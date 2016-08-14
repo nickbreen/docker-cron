@@ -1,2 +1,2 @@
 #!/bin/sh
-find /etc/container_environment/CRON_D_* -print0 | xargs -0 -r ln -s -t /etc/cron.d/
+find /etc/container_environment/CRON_D_* -print0 | xargs -0 -r ln -f -s -t /etc/cron.d/

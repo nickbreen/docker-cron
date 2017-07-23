@@ -1,7 +1,7 @@
 version: '2'
 services:
   cron:
-    image: nickbreen/cron:v2.0.2
+    image: nickbreen/cron:develop
     build:
       context: .
     environment:
